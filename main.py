@@ -2,7 +2,7 @@ import os
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
-PROVISION_TOKEN = os.environ.get("dontfuqqwitme1018")
+PROVISION_TOKEN = os.environ.get("Provision_Token")
 
 @app.before_request
 def require_token():
