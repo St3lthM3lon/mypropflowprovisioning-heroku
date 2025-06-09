@@ -6,7 +6,6 @@ PROVISION_TOKEN = os.environ.get("PROVISION_TOKEN")
 
 @app.before_request
 def require_token():
-    # only enforce on /api/provision
     if request.path == "/api/provision":
         auth = request.headers.get("Authorization", "")
         # expecting header: Authorization: Bearer <token>
