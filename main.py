@@ -31,7 +31,7 @@ def provision():
             abort(400)
 
         logging.info(f"Received provision payload: {data}")
-        client_name = data("clientName", "")
+        client_name = data["clientName"]
         client_email = data.get("email", "")
         client_phone = data.get("phone", "")
         workspace_id = data.get("workspaceId", "")
