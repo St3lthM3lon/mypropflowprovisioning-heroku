@@ -25,8 +25,13 @@ def require_token():
 @app.route("/api/provision", methods=["POST"])
 def provision():
     try:
-        data = request.get_json()
-        client_name = data["clientName"]
+        data = request.get_json(force=True)
+        if not data:
+            logging.error("No JSON payload received")
+            abort(400)
+
+        logging.info(f"Received provision payload: {data}")
+        client_name = data("clientName", "")
         client_email = data.get("email", "")
         client_phone = data.get("phone", "")
         workspace_id = data.get("workspaceId", "")
