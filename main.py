@@ -25,6 +25,10 @@ def require_token():
 @app.route("/api/provision", methods=["POST"])
 def provision():
     try:
+
+        # Log raw headers and body
+        logging.info("Headers: %s", dict(request.headers))
+        logging.info("Raw Body: %s", request.data.decode())        
         # Try JSON payload first
         data = request.get_json(force=True, silent=True)
 
