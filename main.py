@@ -25,50 +25,44 @@ def require_token():
 @app.route("/api/provision", methods=["POST"])
 def provision():
     try:
+        # Try JSON payload first
         data = request.get_json(force=True, silent=True)
+
+        # If not JSON, fallback to form data
         if not data:
-            logging.error("Invalid or missing JSON payload: %s", request.data.decode())
-            return jsonify({"status": "error", "message": "Missing or invalid JSON body"}), 400
+            data = request.form.to_dict()
+            logging.info("Using form-based data fallback: %s", data)
 
-        # Required fields (all .get() for safety)
-        client_name         = data.get("clientName")
-        contact_name        = data.get("primaryContactName")
-        contact_email       = data.get("primaryContactEmail")
-        contact_phone       = data.get("primaryContactPhone")
-        subdomain           = data.get("portalSubdomain")
-        logo_url            = data.get("logoUrl")
-        primary_color       = data.get("primaryColor")
-        secondary_color     = data.get("secondaryColor")
-        primetracers_key    = data.get("primeTracersApiKey")
-        calendly_key        = data.get("calendlyApiKey")
-        twilio_sid          = data.get("twilioAccountSid")
-        twilio_key          = data.get("twilioApiKey")
-        sendgrid_key        = data.get("sendgridApiKey")
+        if not data:
+            logging.error("Missing or invalid payload")
+            return jsonify({"status": "error", "message": "Missing payload"}), 400
 
+        # Continue with existing logic
+        client_name = data.get("clientName")
         if not client_name:
             return jsonify({"status": "error", "message": "Missing required field: clientName"}), 400
 
-        # Create Airtable record
+        # Create the new Airtable record
         new_record = clients_table.create({
             "Client Name": client_name,
-            "Primary Contact Name": contact_name,
-            "Primary Contact Email": contact_email,
-            "Primary Contact Phone": contact_phone,
-            "Portal Subdomain": subdomain,
-            "Logo URL": logo_url,
-            "Primary Color": primary_color,
-            "Secondary Color": secondary_color,
-            "PrimeTracers API Key": primetracers_key,
-            "Calendly API Key": calendly_key,
-            "Twilio Account SID": twilio_sid,
-            "Twilio API Key": twilio_key,
-            "Sendgrid API Key": sendgrid_key,
+            "Primary Contact Name": data.get("primaryContactName"),
+            "Primary Contact Email": data.get("primaryContactEmail"),
+            "Primary Contact Phone": data.get("primaryContactPhone"),
+            "Portal Subdomain": data.get("portalSubdomain"),
+            "Logo URL": data.get("logoUrl"),
+            "Primary Color (HEX)": data.get("primaryColorHex"),
+            "Secondary Color (HEX)": data.get("secondaryColorHex"),
+            "PrimeTracers API Key": data.get("primeTracersApiKey"),
+            "Calendly API Key": data.get("calendlyApiKey"),
+            "Twilio Account SID": data.get("twilioAccountSid"),
+            "Twilio API Key": data.get("twilioApiKey"),
+            "Sendgrid API Key": data.get("sendgridApiKey"),
             "Provisioning Status": "In Progress"
         })
 
         client_id = new_record["id"]
 
-        # Final update to mark provision complete
+        # Final update
         clients_table.update(client_id, {"Provisioning Status": "Complete"})
 
         return jsonify({"status": "provisioned", "clientId": client_id}), 200
