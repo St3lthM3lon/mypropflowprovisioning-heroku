@@ -25,21 +25,16 @@ def require_token():
 @app.route("/api/provision", methods=["POST"])
 def provision():
     try:
-        raw_data = request.data.decode()
-        json_data = request.get_json(silent=True)
+        logging.info("Headers: %s", dict(request.headers))
+        logging.info("Raw Data: %s", request.data.decode())
+        logging.info("JSON Payload: %s", request.get_json(silent=True))
 
-        logging.info("📦 RAW BODY: %s", raw_data)
-        logging.info("🧠 PARSED JSON: %s", json_data)
+        data = request.get_json(force=True)
+        if not data:
+            logging.error("Missing or invalid JSON payload.")
+            abort(400, "Missing JSON")
 
-        return jsonify({
-            "status": "success",
-            "raw_data": raw_data,
-            "parsed_json": json_data
-        }), 200
-
-    except Exception as e:
-        logging.exception("Provisioning debug failed")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        client_name = data["clientName"]  # will still fail here if key is missing
         
         logging.info(f"Received provision payload: {data}")
         client_name = data.get("clientName")
