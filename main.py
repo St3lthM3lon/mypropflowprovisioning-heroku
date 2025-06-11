@@ -34,16 +34,14 @@ def provision():
             logging.error("Missing or invalid JSON payload.")
             abort(400, "Missing JSON")
 
-    
+        client_name = data["clientName"]  # will still fail here if key is missing
+        
         logging.info(f"Received provision payload: {data}")
         client_name = data.get("clientName")
             if not client_name:
                 logging.error("Missing field 'clientName' in payload: %s", data)
                 abort(400, "Missing field: clientName")
         client_email = data.get("email", "")
-            if not client_email: 
-                logging.error("Missing field 'clientEmail' in payload: %s", datat)
-                abort(400, "Missing field: clientName")
         client_phone = data.get("phone", "")
         workspace_id = data.get("workspaceId", "")
 
