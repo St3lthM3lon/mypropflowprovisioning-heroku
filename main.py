@@ -28,16 +28,17 @@ def provision():
         raw_data = request.data.decode()
         json_data = request.get_json(silent=True)
 
-        logging.info("📦 RAW BODY from Zapier: %s", raw_data)
-        logging.info("🧠 Parsed JSON (if any): %s", json_data)
+        logging.info("📦 RAW BODY: %s", raw_data)
+        logging.info("🧠 PARSED JSON: %s", json_data)
 
         return jsonify({
-            "raw": raw_data,
-            "parsed": json_data
+            "status": "success",
+            "raw_data": raw_data,
+            "parsed_json": json_data
         }), 200
 
     except Exception as e:
-        logging.exception("💥 Provisioning debug failed")
+        logging.exception("Provisioning debug failed")
         return jsonify({"status": "error", "message": str(e)}), 500
         
         logging.info(f"Received provision payload: {data}")
