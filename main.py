@@ -63,7 +63,7 @@ def provision():
             "Twilio Account SID": twilio_sid,
             "Twilio API Key": twilio_key,
             "Sendgrid API Key": sendgrid_key,
-            "Provisioning Status": "In Progress"
+            "Provisioning Status": "In-Progress"
         })
 
         client_id = new_record["id"]
