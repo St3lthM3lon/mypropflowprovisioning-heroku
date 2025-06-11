@@ -25,47 +25,50 @@ def require_token():
 @app.route("/api/provision", methods=["POST"])
 def provision():
     try:
-        logging.info("Headers: %s", dict(request.headers))
-        logging.info("Raw Data: %s", request.data.decode())
-        logging.info("JSON Payload: %s", request.get_json(silent=True))
-
         data = request.get_json(force=True, silent=True)
         if not data:
             logging.error("Invalid or missing JSON payload: %s", request.data.decode())
             return jsonify({"status": "error", "message": "Missing or invalid JSON body"}), 400
 
-        client_name = data["clientName"]  # will still fail here if key is missing
-        
-        logging.info(f"Received provision payload: {data}")
-        client_name = data.get("clientName")
-        if not client_name:
-            logging.error("Missing 'clientName' key in payload: %s", data)
-            return jsonify({"status": "error", "message": "Missing required field: clientName"}), 400
-        client_email = data.get("email", "")
-        client_phone = data.get("phone", "")
-        workspace_id = data.get("workspaceId", "")
+        # Required fields (all .get() for safety)
+        client_name         = data.get("clientName")
+        contact_name        = data.get("primaryContactName")
+        contact_email       = data.get("primaryContactEmail")
+        contact_phone       = data.get("primaryContactPhone")
+        subdomain           = data.get("portalSubdomain")
+        logo_url            = data.get("logoUrl")
+        primary_color       = data.get("primaryColorHex")
+        secondary_color     = data.get("secondaryColorHex")
+        primetracers_key    = data.get("primeTracersApiKey")
+        calendly_key        = data.get("calendlyApiKey")
+        twilio_sid          = data.get("twilioAccountSid")
+        twilio_key          = data.get("twilioApiKey")
+        sendgrid_key        = data.get("sendgridApiKey")
 
-        # Step 1: Simulate base clone — add to Clients table
+        if not client_name:
+            return jsonify({"status": "error", "message": "Missing required field: clientName"}), 400
+
+        # Create Airtable record
         new_record = clients_table.create({
             "Client Name": client_name,
-            "Email": client_email,
-            "Phone": client_phone,
+            "Primary Contact Name": contact_name,
+            "Primary Contact Email": contact_email,
+            "Primary Contact Phone": contact_phone,
+            "Portal Subdomain": subdomain,
+            "Logo URL": logo_url,
+            "Primary Color (HEX)": primary_color,
+            "Secondary Color (HEX)": secondary_color,
+            "PrimeTracers API Key": primetracers_key,
+            "Calendly API Key": calendly_key,
+            "Twilio Account SID": twilio_sid,
+            "Twilio API Key": twilio_key,
+            "Sendgrid API Key": sendgrid_key,
             "Provisioning Status": "In Progress"
         })
+
         client_id = new_record["id"]
 
-        # Step 2: Write to Config table
-        config_table.create({
-            "Client ID": client_id,
-            "Client Name": client_name,
-            "Workspace ID": workspace_id,
-            "Email": client_email,
-            "Phone": client_phone
-        })
-
-        # Step 3: (Skip Zapier for now)
-
-        # Step 4: Update provisioning status
+        # Final update to mark provision complete
         clients_table.update(client_id, {"Provisioning Status": "Complete"})
 
         return jsonify({"status": "provisioned", "clientId": client_id}), 200
