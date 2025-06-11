@@ -29,18 +29,18 @@ def provision():
         logging.info("Raw Data: %s", request.data.decode())
         logging.info("JSON Payload: %s", request.get_json(silent=True))
 
-        data = request.get_json(force=True)
+        data = request.get_json(force=True, silent=True)
         if not data:
-            logging.error("Missing or invalid JSON payload.")
-            abort(400, "Missing JSON")
+            logging.error("Invalid or missing JSON payload: %s", request.data.decode())
+            return jsonify({"status": "error", "message": "Missing or invalid JSON body"}), 400
 
         client_name = data["clientName"]  # will still fail here if key is missing
         
         logging.info(f"Received provision payload: {data}")
         client_name = data.get("clientName")
         if not client_name:
-            logging.error("Missing field 'clientName' in payload: %s", data)
-            abort(400, "Missing field: clientName")
+            logging.error("Missing 'clientName' key in payload: %s", data)
+            return jsonify({"status": "error", "message": "Missing required field: clientName"}), 400
         client_email = data.get("email", "")
         client_phone = data.get("phone", "")
         workspace_id = data.get("workspaceId", "")
