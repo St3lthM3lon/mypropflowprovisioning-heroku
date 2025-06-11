@@ -25,26 +25,32 @@ def require_token():
 @app.route("/api/provision", methods=["POST"])
 def provision():
     try:
-
-        # Log raw headers and body
+        # Log everything coming in
+        logging.info("---- Incoming Provision Request ----")
         logging.info("Headers: %s", dict(request.headers))
-        logging.info("Raw Body: %s", request.data.decode())        
-        # Try JSON payload first
+        logging.info("Raw Body: %s", request.data.decode())
+
+        # Try JSON
         data = request.get_json(force=True, silent=True)
 
-        # If not JSON, fallback to form data
         if not data:
+            # Try form-style
             data = request.form.to_dict()
-            logging.info("Using form-based data fallback: %s", data)
+            logging.info("Fallback form payload: %s", data)
 
         if not data:
-            logging.error("Missing or invalid payload")
+            logging.error("Final payload parse failed. No data received.")
             return jsonify({"status": "error", "message": "Missing payload"}), 400
 
-        # Continue with existing logic
+        # Log final parsed payload
+        logging.info("Parsed Payload: %s", data)
+
         client_name = data.get("clientName")
         if not client_name:
+            logging.error("Missing required field: clientName")
             return jsonify({"status": "error", "message": "Missing required field: clientName"}), 400
+
+        # [Rest of your provisioning logic...]
 
         # Create the new Airtable record
         new_record = clients_table.create({
