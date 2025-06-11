@@ -34,7 +34,6 @@ def provision():
             logging.error("Missing or invalid JSON payload.")
             abort(400, "Missing JSON")
 
-        client_name = data["clientName"]  # will still fail here if key is missing
 
         logging.info(f"Received provision payload: {data}")
         client_name = data["clientName"]
